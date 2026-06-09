@@ -24,10 +24,8 @@ $sql_hotels = "CREATE TABLE IF NOT EXISTS hotels (
     location VARCHAR(255) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)"
-    FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE";
-
-#Customers book hotels
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP),
+    FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE)";
 
 $sql_bookings = "CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
