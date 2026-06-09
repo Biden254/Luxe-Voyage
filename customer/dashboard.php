@@ -21,23 +21,22 @@ $stats_query->bind_param("i", $user_id);
 $stats_query->execute();
 $stats = $stats_query->get_result()->fetch_assoc();
 
-// Get upcoming trips
-$upcoming_query = $conn->prepare(
-    "SELECT b.*, 
-            b.check_in AS check_in_date,
-            b.check_out AS check_out_date,
-            h.name as hotel_name, 
-            h.image,
-            d.name as destination_name,
-            d.image as destination_image
-     FROM bookings b
-     JOIN hotels h ON b.hotel_id = h.id
-     JOIN destinations d ON h.destination_id = d.id
-     WHERE b.customer_id = ? AND b.status = 'confirmed' 
-     AND b.check_in >= CURDATE()
-     ORDER BY b.check_in ASC
-     LIMIT 3"
-);
+// Get upcoming trips (build select dynamically to avoid referencing missing image columns)
+$select_parts = "b.*, b.check_in AS check_in_date, b.check_out AS check_out_date, h.name as hotel_name";
+if (isset($has_hotel_image) && $has_hotel_image) {
+    $select_parts .= ", h.image";
+} else {
+    $select_parts .= ", '' as image";
+}
+$select_parts .= ", d.name as destination_name";
+if (isset($has_destination_image) && $has_destination_image) {
+    $select_parts .= ", d.image as destination_image";
+} else {
+    $select_parts .= ", '' as destination_image";
+}
+
+$sql = "SELECT $select_parts FROM bookings b JOIN hotels h ON b.hotel_id = h.id JOIN destinations d ON h.destination_id = d.id WHERE b.customer_id = ? AND b.status = 'confirmed' AND b.check_in >= CURDATE() ORDER BY b.check_in ASC LIMIT 3";
+$upcoming_query = $conn->prepare($sql);
 $upcoming_query->bind_param("i", $user_id);
 $upcoming_query->execute();
 $upcoming_trips = $upcoming_query->get_result();

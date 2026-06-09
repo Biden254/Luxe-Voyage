@@ -8,6 +8,8 @@ $user = $_SESSION['user'];
 include "config/db.php";
 $user_id = $user['id'];
 $stats = [];
+// Use booking_date if available, otherwise fallback to created_at
+$booking_date_field = (isset($has_booking_date) && $has_booking_date) ? 'booking_date' : 'created_at';
 
 if ($user['role'] === 'customer') {
     $stats_query = $conn->query(
@@ -34,9 +36,9 @@ if ($user['role'] === 'customer') {
         "SELECT 
             COUNT(*) as total_users,
             (SELECT COUNT(*) FROM hotels) as total_hotels,
-            (SELECT COUNT(*) FROM bookings WHERE DATE(booking_date) = CURDATE()) as today_bookings
+            (SELECT COUNT(*) FROM bookings WHERE DATE(" . $booking_date_field . ") = CURDATE()) as today_bookings
         FROM users
-    ") or die($conn->error);
+    " ) or die($conn->error);
     $stats = $stats_query->fetch_assoc();
 }
 
@@ -45,10 +47,10 @@ $recent_activity_query = "
     (SELECT 
         'booking' as activity_type,
         CONCAT('Booking #', b.id) as title,
-        b.booking_date as activity_date
+        b." . $booking_date_field . " as activity_date
      FROM bookings b
      WHERE b.customer_id = $user_id 
-     ORDER BY b.booking_date DESC
+     ORDER BY b." . $booking_date_field . " DESC
      LIMIT 2)
     UNION ALL
     (SELECT 

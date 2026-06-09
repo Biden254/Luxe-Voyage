@@ -10,7 +10,12 @@ echo "=== DEBUG START ===<br>";
 echo "1. Database Connection: " . ($conn ? "OK" : "FAILED") . "<br>";
 
 // 2. Check what's actually in the hotels table
-$debug_query = "SELECT id, name, image, LENGTH(image) as name_length FROM hotels WHERE is_featured = 1 LIMIT 4";
+if (isset($has_hotel_image) && $has_hotel_image) {
+    $debug_query = "SELECT id, name, image, LENGTH(image) as name_length FROM hotels WHERE is_featured = 1 LIMIT 4";
+} else {
+    // hotels.image column missing - select placeholders to avoid SQL errors
+    $debug_query = "SELECT id, name, '' as image, 0 as name_length FROM hotels WHERE is_featured = 1 LIMIT 4";
+}
 $debug_result = $conn->query($debug_query);
 
 if ($debug_result) {
@@ -80,19 +85,22 @@ echo "=== DEBUG END ===<br><br>";
 $image_base_path = $base_url . '/Luxe-Voyage/assets/images/hotels_photos/';
 
 // Fetch featured hotels from the database
-$featured_hotels_query = "
-    SELECT 
+$image_expr = (isset($has_hotel_image) && $has_hotel_image)
+    ? "CONCAT('$image_base_path', COALESCE(h.image, 'default_hotel.jpg'))"
+    : "CONCAT('$image_base_path', 'default_hotel.jpg')";
+
+$featured_hotels_query =
+    "SELECT 
         h.*, 
         (SELECT AVG(rating) FROM reviews WHERE hotel_id = h.id) as avg_rating,
-        d.name as destination_name,
-        CONCAT('$image_base_path', COALESCE(h.image, 'default_hotel.jpg')) as image_url,
+        d.name as destination_name, ". $image_expr ." as image_url,
         CONCAT('KSh ', FORMAT(h.price_per_night, 0)) as formatted_price
-    FROM hotels h
-    LEFT JOIN destinations d ON h.destination_id = d.id
-    WHERE h.is_featured = 1
-    ORDER BY h.created_at DESC
-    LIMIT 4
-";
+     FROM hotels h
+     LEFT JOIN destinations d ON h.destination_id = d.id
+     WHERE h.is_featured = 1
+     ORDER BY h.created_at DESC
+     LIMIT 4";
+
 $featured_hotels = $conn->query($featured_hotels_query);
 
 // Debug: Uncomment to see the data being fetched

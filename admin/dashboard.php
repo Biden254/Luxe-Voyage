@@ -10,6 +10,9 @@ include "../includes/auth.php";
 include "../config/db.php";
 requireRole('admin');
 
+// booking date field to use in displays (booking_date if present, otherwise created_at)
+$booking_date_field = (isset($has_booking_date) && $has_booking_date) ? 'booking_date' : 'created_at';
+
 // Debug: Check session
 // echo "<!-- DEBUG: Session user role: " . $_SESSION['user']['role'] . " -->\n";
 // echo "<!-- DEBUG: Session username: " . $_SESSION['user']['username'] . " -->\n";
@@ -305,7 +308,7 @@ ob_end_clean();
                                         </p>
                                     </div>
                                     <div class="activity-time">
-                                        <?php echo date('H:i', strtotime($booking['booking_date'])); ?>
+                                        <?php echo date('H:i', strtotime($booking[$booking_date_field])); ?>
                                     </div>
                                 </div>
                             <?php endwhile; ?>

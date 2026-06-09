@@ -5,6 +5,9 @@ requireRole('host');
 
 $hostId = $_SESSION['user']['id'];
 
+// booking date field to use in displays (booking_date if present, otherwise created_at)
+$booking_date_field = (isset($has_booking_date) && $has_booking_date) ? 'booking_date' : 'created_at';
+
 // Get filter parameters
 $filter = $_GET['filter'] ?? 'all';
 $status = $_GET['status'] ?? '';
@@ -12,18 +15,21 @@ $search = $_GET['search'] ?? '';
 $hotel_id = $_GET['hotel'] ?? '';
 
 // Build query with filters - FIXED VERSION
+// Build select dynamically to avoid referencing missing image column
+$hotel_image_select = (isset($has_hotel_image) && $has_hotel_image) ? "h.image as hotel_image" : "'' as hotel_image";
+
 $query = "SELECT 
-            b.id, b.customer_id, b.hotel_id, b.check_in, b.check_out, 
-            b.status, b.created_at, b.total_amount,
-            h.name AS hotel_name, h.image as hotel_image, h.location,
-            u.username AS customer_name, u.email AS customer_email,
-            DATE(b.check_in) as check_in_date, DATE(b.check_out) as check_out_date,
-            d.name as destination_name
-          FROM bookings b
-          JOIN hotels h ON b.hotel_id = h.id
-          JOIN users u ON b.customer_id = u.id
-          JOIN destinations d ON h.destination_id = d.id
-          WHERE h.host_id = ?";
+                        b.id, b.customer_id, b.hotel_id, b.check_in, b.check_out, 
+                        b.status, b.created_at, b.total_amount,
+                        h.name AS hotel_name, " . $hotel_image_select . ", h.location,
+                        u.username AS customer_name, u.email AS customer_email,
+                        DATE(b.check_in) as check_in_date, DATE(b.check_out) as check_out_date,
+                        d.name as destination_name
+                    FROM bookings b
+                    JOIN hotels h ON b.hotel_id = h.id
+                    JOIN users u ON b.customer_id = u.id
+                    JOIN destinations d ON h.destination_id = d.id
+                    WHERE h.host_id = ?";
 
           
 $params = [$hostId];
@@ -252,7 +258,7 @@ $hotels = $hotels_query->get_result();
                                     <td>
                                         <strong>#<?php echo str_pad($booking['id'], 6, '0', STR_PAD_LEFT); ?></strong>
                                         <div class="date-sub">
-                                            <?php echo date('M d, Y', strtotime($booking['booking_date'])); ?>
+                                            <?php echo date('M d, Y', strtotime($booking[$booking_date_field])); ?>
                                         </div>
                                     </td>
                                     <td>
