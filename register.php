@@ -13,8 +13,8 @@ if (isset($_POST['register'])) {
     $email = trim($_POST['email']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    // Debug: Check what values we have
-    echo "DEBUG: Role = $role, Username = $username, Email = $email<br>";
+    // Debug statement removed/commented out to prevent "headers already sent" error
+    // error_log("DEBUG: Role = $role, Username = $username, Email = $email");
     
     // First, check if user already exists
     $check_query = "SELECT id FROM users WHERE email = ? OR username = ?";
