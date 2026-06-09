@@ -10,37 +10,42 @@ if (!$conn) {
     die("Database connection failed: " . mysqli_connect_error());
 }
 
-echo "<h2>Starting Database Migration...</h2>";
+echo "<h2>Executing Option B: Database Architecture Sync...</h2>";
 
-// 1. Check if the column already exists to prevent duplicate column errors
-$check_column = "SHOW COLUMNS FROM bookings LIKE 'total_amount'";
-$result = mysqli_query($conn, $check_column);
-$column_exists = mysqli_num_rows($result) > 0;
+// 1. Create the missing destinations table
+$sql_destinations = "CREATE TABLE IF NOT EXISTS destinations (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    image_url VARCHAR(255) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)";
 
-if (!$column_exists) {
-    // 2. Add the total_amount column right after the check_out field
-    $alter_sql = "ALTER TABLE bookings ADD COLUMN total_amount DECIMAL(10, 2) NOT NULL AFTER check_out";
-    
-    if (mysqli_query($conn, $alter_sql)) {
-        echo "<p style='color: green;'>✅ Success: 'total_amount' column added to bookings table.</p>";
-    } else {
-        echo "<p style='color: red;'>❌ Error altering table: " . mysqli_error($conn) . "</p>";
-    }
+if (mysqli_query($conn, $sql_destinations)) {
+    echo "<p style='color: green;'>✅ Success: 'destinations' table created.</p>";
 } else {
-    echo "<p style='color: orange;'>ℹ️ Notice: 'total_amount' column already exists in bookings table. No changes made.</p>";
+    echo "<p style='color: red;'>❌ Error creating destinations table: " . mysqli_error($conn) . "</p>";
 }
 
-// 3. Make sure check_in and check_out are properly set to NOT NULL for safety
-$modify_dates_sql = "ALTER TABLE bookings 
-                     MODIFY COLUMN check_in DATE NOT NULL, 
-                     MODIFY COLUMN check_out DATE NOT NULL";
+// 2. Add destination_id to hotels table if it doesn't exist yet
+$check_column = "SHOW COLUMNS FROM hotels LIKE 'destination_id'";
+$result = mysqli_query($conn, $check_column);
 
-if (mysqli_query($conn, $modify_dates_sql)) {
-    echo "<p style='color: green;'>✅ Success: Date columns set to NOT NULL.</p>";
+if (mysqli_num_rows($result) == 0) {
+    // If your dashboard query joins hotels and destinations via an ID, we add it here
+    $alter_hotels = "ALTER TABLE hotels 
+                     ADD COLUMN destination_id INT NULL AFTER host_id,
+                     ADD FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE SET NULL";
+    
+    if (mysqli_query($conn, $alter_hotels)) {
+        echo "<p style='color: green;'>✅ Success: Linked 'hotels' to 'destinations' via foreign key.</p>";
+    } else {
+        echo "<p style='color: red;'>❌ Note on Hotels Alteration: " . mysqli_error($conn) . " (If your query doesn't use destination_id in hotels, this can be safely ignored).</p>";
+    }
 } else {
-    echo "<p style='color: red;'>❌ Error modifying date columns: " . mysqli_error($conn) . "</p>";
+    echo "<p style='color: orange;'>ℹ️ Notice: 'destination_id' already exists in hotels table.</p>";
 }
 
 mysqli_close($conn);
-echo "<h3>Migration Complete. Please delete this file from your server immediately.</h3>";
+echo "<h3>Migration Complete. Refresh your dashboard and delete this file from your server!</h3>";
 ?>
