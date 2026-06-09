@@ -8,7 +8,8 @@ $conn = mysqli_connect($host, $username, $password, $dbname);
 if (!$conn) {
     die("Database connection failed");
 }
-#User table creation
+
+# User table creation
 $sql_users = "CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
@@ -16,7 +17,8 @@ $sql_users = "CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     role ENUM('customer', 'host', 'admin') NOT NULL DEFAULT 'customer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
-#Hotel table creation
+
+# Hotel table creation
 $sql_hotels = "CREATE TABLE IF NOT EXISTS hotels (
     id INT AUTO_INCREMENT PRIMARY KEY,
     host_id INT NOT NULL,
@@ -24,9 +26,11 @@ $sql_hotels = "CREATE TABLE IF NOT EXISTS hotels (
     location VARCHAR(255) NOT NULL,
     price DECIMAL(10, 2) NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP),
-    FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE)";
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (host_id) REFERENCES users(id) ON DELETE CASCADE
+)";
 
+# Bookings table creation
 $sql_bookings = "CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
@@ -47,3 +51,4 @@ if (
 } else {
     echo "Error creating tables: " . mysqli_error($conn);
 }
+?>
