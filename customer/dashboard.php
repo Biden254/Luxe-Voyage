@@ -24,6 +24,8 @@ $stats = $stats_query->get_result()->fetch_assoc();
 // Get upcoming trips
 $upcoming_query = $conn->prepare(
     "SELECT b.*, 
+            b.check_in AS check_in_date,
+            b.check_out AS check_out_date,
             h.name as hotel_name, 
             h.image,
             d.name as destination_name,

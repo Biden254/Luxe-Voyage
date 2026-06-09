@@ -50,13 +50,17 @@ CREATE TABLE bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
     hotel_id INT NOT NULL,
+    destination_id INT NULL,
     check_in DATE,
     check_out DATE,
+    guests INT DEFAULT 1,
+    special_requests TEXT,
     status ENUM('pending','confirmed','cancelled','completed') DEFAULT 'pending',
     booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_amount DECIMAL(10,2) DEFAULT 0.00,
     FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+    FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+    FOREIGN KEY (destination_id) REFERENCES destinations(id) ON DELETE SET NULL
 );

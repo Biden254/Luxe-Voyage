@@ -43,7 +43,7 @@ if (isset($_POST['book']) && $hotel) {
         $total_amount = $nights * $hotel['price'] * $guests;
         
         $stmt = $conn->prepare(
-            "INSERT INTO bookings (user_id, hotel_id, check_in_date, check_out_date, guests, total_amount, special_requests, status)
+            "INSERT INTO bookings (customer_id, hotel_id, check_in, check_out, guests, total_amount, special_requests, status)
              VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')"
         );
         $stmt->bind_param("iissids", $user_id, $hotel_id, $check_in, $check_out, $guests, $total_amount, $special_requests);
